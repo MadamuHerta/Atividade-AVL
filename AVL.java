@@ -1,3 +1,5 @@
+// Alice de Oliveira Duarte - 10419323
+// Pedro Roberto Fernandes Noronha - 10443434
 //
 // Árvore AVL (Rotações) - Exemplo de implementação em Java
 // Copyright (C) 2024 André Kishimoto
@@ -46,17 +48,19 @@ public class AVL extends BST {
 		if (node == null) {
 			return null;
 		}
-		
+
+		System.out.println("Aplicando rotacao LL (esquerda simples)");
+
 		// O nó atual deve ter um filho direito, que será a nova raiz desta subárvore.
 		Node newRoot = node.getRight();
 		if (newRoot == null) {
 			return null;
 		}
-		
+
 		// Troca as conexões do nó pai (newRoot vira filho de parent, no lugar de node).
 		Node parent = node.getParent();
 		updateParentChild(parent, node, newRoot);
-		
+
 		// newRoot é a nova raiz desta subárvore, então seu filho esquerdo se torna o
 		// filho direito de node (que deixa de ser raiz desta subárvore).
 		Node left = newRoot.getLeft();
@@ -64,7 +68,7 @@ public class AVL extends BST {
 
 		// node agora vira filho esquerdo de newRoot.
 		newRoot.setLeft(node);
-		
+
 		return newRoot;
 	}
 	
@@ -73,36 +77,40 @@ public class AVL extends BST {
 		if (node == null) {
 			return null;
 		}
-		
+
+		System.out.println("Aplicando rotacao RR (direita simples)");
+
 		// O nó atual deve ter um filho esquerdo, que será a nova raiz desta subárvore.
 		Node newRoot = node.getLeft();
 		if (newRoot == null) {
 			return null;
 		}
-		
+
 		// Troca as conexões do nó pai (newRoot vira filho de parent, no lugar de node).
 		Node parent = node.getParent();
 		updateParentChild(parent, node, newRoot);
-		
+
 		// newRoot é a nova raiz desta subárvore, então seu filho direito se torna o
 		// filho esquerdo de node (que deixa de ser raiz desta subárvore).
 		Node right = newRoot.getRight();
 		node.setLeft(right);
-		
+
 		// node agora vira filho direito de newRoot.
 		newRoot.setRight(node);
-		
+
 		return newRoot;
 	}
 	
 	// Rotação LR.
 	private Node rotateLeftRight(Node node) {
+		System.out.println("Aplicando rotacao LR (esquerda-direita dupla)");
 		node.setLeft(rotateLeft(node.getLeft()));
 		return rotateRight(node);
 	}
 	
 	// Rotação RL.
 	private Node rotateRightLeft(Node node) {
+		System.out.println("Aplicando rotacao RL (direita-esquerda dupla)");
 		node.setRight(rotateRight(node.getRight()));
 		return rotateLeft(node);
 	}
@@ -129,63 +137,108 @@ public class AVL extends BST {
 	}
 	
 
-    public void AVLinsert(int data) {
-		root = insert(root, null, data);
-
-		// Após a inserção  verifica o balanceamento 
-        int bf = 0;
-        if (root != null) {
-            bf = root.getBalanceFactor();
-        }
-
-		if (bf > 1) {
-
-			if (root.getRight() != null && root.getRight().getBalanceFactor() >= 0) {
-				// Rotação simples esquerda 
-				root = rotateLeft(root);
-
-			} else if (root.getRight() != null) {
-				// Rotação dupla esquerda 
-				root = rotateRightLeft(root);
-			}
-
-		} else if (bf < -1) {
-			if (root.getLeft() != null && root.getLeft().getBalanceFactor() <= 0) {
-				// Rotação simples direita 
-				root = rotateRight(root);
-			} else if (root.getLeft() != null) {
-				// Rotação dupla direita 
-				root = rotateLeftRight(root);
-			}
-		}
+	public void AVLinsert(int data) {
+		root = AVLinsertNode(root, null, data);
 	}
 
-    public void AVLremove(int data) {
-		root = remove(root, data);
-
-		// Após a remoção verifica o balanceamento 
-
-        int bf = 0;
-        if (root != null) {
-            bf = root.getBalanceFactor();
-        }
-		if (bf > 1) {
-			if (root.getRight() != null && root.getRight().getBalanceFactor() >= 0) {
-				// Rotação simples esquerda 
-				root = rotateLeft(root);
-			} else if (root.getRight() != null) {
-				// Rotação dupla esquerda 
-				root = rotateRightLeft(root);
-			}
-		} else if (bf < -1) {
-			if (root.getLeft() != null && root.getLeft().getBalanceFactor() <= 0) {
-				// Rotação simples direita 
-				root = rotateRight(root);
-			} else if (root.getLeft() != null) {
-				// Rotação dupla direita 
-				root = rotateLeftRight(root);
-			}
+	// Insere e balanceia recursivamente
+	private Node AVLinsertNode(Node node, Node parent, int data) {
+		// Inserção normal BST
+		if (node == null) {
+			return new Node(data, parent);
 		}
+
+		int diff = data - node.getData();
+
+		if (diff < 0) {
+			node.setLeft(AVLinsertNode(node.getLeft(), node, data));
+		} else if (diff > 0) {
+			node.setRight(AVLinsertNode(node.getRight(), node, data));
+		} else {
+			throw new RuntimeException("Essa AVL não pode ter duplicatas!");
+		}
+
+		// Balanceia após inserção
+		return balanceNode(node);
+	}
+
+	// Balanceia um nó baseado no balance factor
+	private Node balanceNode(Node node) {
+		if (node == null) {
+			return null;
+		}
+
+		int bf = node.getBalanceFactor();
+
+		// Desbalanceado à direita
+		if (bf > 1) {
+			if (node.getRight() != null && node.getRight().getBalanceFactor() < 0) {
+				// Caso RL - dupla
+				return rotateRightLeft(node);
+			}
+			// Caso LL - simples
+			return rotateLeft(node);
+		}
+
+		// Desbalanceado à esquerda
+		if (bf < -1) {
+			if (node.getLeft() != null && node.getLeft().getBalanceFactor() > 0) {
+				// Caso LR - dupla
+				return rotateLeftRight(node);
+			}
+			// Caso RR - simples
+			return rotateRight(node);
+		}
+
+		return node;
+	}
+
+	public void AVLremove(int data) {
+		root = AVLremoveNode(root, data);
+	}
+
+	// Remove e balanceia recursivamente
+	private Node AVLremoveNode(Node node, int data) {
+		if (node == null) {
+			throw new RuntimeException("Nó com chave " + data + " não existe na AVL!");
+		}
+
+		int diff = data - node.getData();
+
+		if (diff < 0) {
+			node.setLeft(AVLremoveNode(node.getLeft(), data));
+		} else if (diff > 0) {
+			node.setRight(AVLremoveNode(node.getRight(), data));
+		} else {
+			// Nó encontrado, remove
+			node = removeNodeAVL(node);
+		}
+
+		// Balanceia após remoção
+		return balanceNode(node);
+	}
+
+	// Remove um nó específico
+	private Node removeNodeAVL(Node node) {
+		if (node.isLeaf()) {
+			return null;
+		}
+
+		if (!node.hasLeftChild()) {
+			return node.getRight();
+		} else if (!node.hasRightChild()) {
+			return node.getLeft();
+		} else {
+			// Nó com dois filhos - usa predecessor (máximo da subárvore esquerda)
+			Node predecessor = node.getLeft();
+			while (predecessor.hasRightChild()) {
+				predecessor = predecessor.getRight();
+			}
+			node.setData(predecessor.getData());
+			node.setLeft(AVLremoveNode(node.getLeft(), predecessor.getData()));
+		}
+
+		return node;
 	}
 
 

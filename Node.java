@@ -1,4 +1,5 @@
-
+// Alice de Oliveira Duarte - 10419323
+// Pedro Roberto Fernandes Noronha - 10443434
 //
 // Árvore AVL (Rotações) - Exemplo de implementação em Java
 // Copyright (C) 2024 André Kishimoto
